@@ -27,7 +27,7 @@ namespace AirportSimulation
     {
         public string FlightNumber { get; set; }
         public string Destination { get; set; }
-        public int DepartureTime { get; set; } // у "тіках"
+        public int DepartureTime { get; set; } 
         public string Status { get; set; }
         public int Capacity { get; set; }
         public List<Passenger> BoardedPassengers { get; set; }
@@ -60,8 +60,8 @@ namespace AirportSimulation
         {
             Time++;
 
-            // Іноді приходить новий пасажир
-            if (rnd.Next(0, 100) < 30) // 30% шанс
+            
+            if (rnd.Next(0, 100) < 30) 
             {
                 var flight = Flights[rnd.Next(Flights.Count)];
                 var passenger = new Passenger("Passenger" + rnd.Next(1000, 9999), flight.FlightNumber);
@@ -70,7 +70,7 @@ namespace AirportSimulation
                 Console.WriteLine($"[NEW] {passenger.Name} прийшов на рейс {flight.FlightNumber}");
             }
 
-            // Реєстрація
+           
             for (int i = 0; i < checkInDesks; i++)
             {
                 if (CheckInQueue.Count > 0)
@@ -82,7 +82,6 @@ namespace AirportSimulation
                 }
             }
 
-            // Контроль безпеки
             for (int i = 0; i < securityPoints; i++)
             {
                 if (SecurityQueue.Count > 0)
@@ -93,7 +92,7 @@ namespace AirportSimulation
                 }
             }
 
-            // Оновлюємо статуси рейсів
+       
             var departedFlights = new List<Flight>();
 
             foreach (var f in Flights)
@@ -111,22 +110,21 @@ namespace AirportSimulation
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"[DEPARTED] Рейс {f.FlightNumber} ({f.Destination}) вилетів!");
                     Console.ResetColor();
-                    // Видаляємо пасажирів рейсу з аеропорту
+                   
                     foreach (var p in f.BoardedPassengers)
     Passengers.Remove(p);
 
-// Додаємо рейс у список на видалення
 departedFlights.Add(f);
                 }
             }
 
-            // Видаляємо вилетілі рейси після перебору
+          
             foreach (var f in departedFlights)
 {
     Flights.Remove(f);
 }
 
-// Посадка пасажирів
+
 foreach (var f in Flights.Where(fl => fl.Status == "Boarding"))
 {
     var ready = Passengers
@@ -142,7 +140,7 @@ foreach (var f in Flights.Where(fl => fl.Status == "Boarding"))
     }
 }
 
-// Вивід інформації
+
 PrintStatus();
         }
 
@@ -168,8 +166,7 @@ PrintStatus();
     static void Main(string[] args)
     {
         Airport airport = new Airport();
-
-        // Додаємо рейси
+ 
         airport.Flights.Add(new Flight("PS101", "Kyiv", 5, 100));
         airport.Flights.Add(new Flight("PS202", "London", 8, 120));
         airport.Flights.Add(new Flight("PS303", "Berlin", 12, 80));
@@ -177,7 +174,7 @@ PrintStatus();
         while (true)
         {
             airport.Tick();
-            Thread.Sleep(1000); // пауза 1 сек для наочності
+            Thread.Sleep(1000); 
         }
     }
 }
