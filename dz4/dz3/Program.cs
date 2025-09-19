@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -28,7 +27,7 @@ namespace AirportSimulation
     {
         public string FlightNumber { get; set; }
         public string Destination { get; set; }
-        public int DepartureTime { get; set; } 
+        public int DepartureTime { get; set; } // у "тіках"
         public string Status { get; set; }
         public int Capacity { get; set; }
         public List<Passenger> BoardedPassengers { get; set; }
@@ -61,8 +60,8 @@ namespace AirportSimulation
         {
             Time++;
 
-         
-            if (rnd.Next(0, 100) < 30) 
+            // Іноді приходить новий пасажир
+            if (rnd.Next(0, 100) < 30) // 30% шанс
             {
                 var flight = Flights[rnd.Next(Flights.Count)];
                 var passenger = new Passenger("Passenger" + rnd.Next(1000, 9999), flight.FlightNumber);
@@ -71,6 +70,7 @@ namespace AirportSimulation
                 Console.WriteLine($"[NEW] {passenger.Name} прийшов на рейс {flight.FlightNumber}");
             }
 
+            // Реєстрація
             for (int i = 0; i < checkInDesks; i++)
             {
                 if (CheckInQueue.Count > 0)
@@ -82,7 +82,7 @@ namespace AirportSimulation
                 }
             }
 
-   
+            // Контроль безпеки
             for (int i = 0; i < securityPoints; i++)
             {
                 if (SecurityQueue.Count > 0)
@@ -93,8 +93,10 @@ namespace AirportSimulation
                 }
             }
 
-         
-            foreach (var f in Flights.ToList())
+            // Оновлюємо статуси рейсів
+            var departedFlights = new List<Flight>();
+
+            foreach (var f in Flights)
             {
                 if (Time == f.DepartureTime - 2 && f.Status == "OnTime")
                 {
@@ -109,65 +111,74 @@ namespace AirportSimulation
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"[DEPARTED] Рейс {f.FlightNumber} ({f.Destination}) вилетів!");
                     Console.ResetColor();
-
+                    // Видаляємо пасажирів рейсу з аеропорту
                     foreach (var p in f.BoardedPassengers)
-                        Passengers.Remove(p);
-                    Flights.Remove(f);
+    Passengers.Remove(p);
+
+// Додаємо рейс у список на видалення
+departedFlights.Add(f);
                 }
             }
 
-         
-            foreach (var f in Flights.Where(fl => fl.Status == "Boarding"))
-            {
-                var ready = Passengers
-                    .Where(p => p.FlightNumber == f.FlightNumber && p.HasTicket && p.PassedSecurity && !p.IsOnBoard)
-                    .Take(boardingSpeed)
-                    .ToList();
+            // Видаляємо вилетілі рейси після перебору
+            foreach (var f in departedFlights)
+{
+    Flights.Remove(f);
+}
 
-                foreach (var p in ready)
-                {
-                    p.IsOnBoard = true;
-                    f.BoardedPassengers.Add(p);
-                    Console.WriteLine($"[BOARD] {p.Name} зайшов у літак {f.FlightNumber}");
-                }
-            }
+// Посадка пасажирів
+foreach (var f in Flights.Where(fl => fl.Status == "Boarding"))
+{
+    var ready = Passengers
+        .Where(p => p.FlightNumber == f.FlightNumber && p.HasTicket && p.PassedSecurity && !p.IsOnBoard)
+        .Take(boardingSpeed)
+        .ToList();
 
-            PrintStatus();
+    foreach (var p in ready)
+    {
+        p.IsOnBoard = true;
+        f.BoardedPassengers.Add(p);
+        Console.WriteLine($"[BOARD] {p.Name} зайшов у літак {f.FlightNumber}");
+    }
+}
+
+// Вивід інформації
+PrintStatus();
         }
 
         private void PrintStatus()
-        {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"\n=== TIME: {Time} ===");
-            Console.ResetColor();
+{
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine($"\n=== TIME: {Time} ===");
+    Console.ResetColor();
 
-            foreach (var f in Flights)
-            {
-                Console.WriteLine($"Flight {f.FlightNumber} to {f.Destination} - {f.Status}");
-            }
+    foreach (var f in Flights)
+    {
+        Console.WriteLine($"Flight {f.FlightNumber} to {f.Destination} - {f.Status}");
+    }
 
-            Console.WriteLine($"Черга на реєстрацію: {CheckInQueue.Count}");
-            Console.WriteLine($"Черга на контроль: {SecurityQueue.Count}");
-            Console.WriteLine($"Очікують у залі: {Passengers.Count(p => p.HasTicket && p.PassedSecurity && !p.IsOnBoard)}");
-        }
+    Console.WriteLine($"Черга на реєстрацію: {CheckInQueue.Count}");
+    Console.WriteLine($"Черга на контроль: {SecurityQueue.Count}");
+    Console.WriteLine($"Очікують у залі: {Passengers.Count(p => p.HasTicket && p.PassedSecurity && !p.IsOnBoard)}");
+}
     }
 
     class Program
+{
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        Airport airport = new Airport();
+
+        // Додаємо рейси
+        airport.Flights.Add(new Flight("PS101", "Kyiv", 5, 100));
+        airport.Flights.Add(new Flight("PS202", "London", 8, 120));
+        airport.Flights.Add(new Flight("PS303", "Berlin", 12, 80));
+
+        while (true)
         {
-            Airport airport = new Airport();
-
-          
-            airport.Flights.Add(new Flight("PS101", "Kyiv", 5, 100));
-            airport.Flights.Add(new Flight("PS202", "London", 8, 120));
-            airport.Flights.Add(new Flight("PS303", "Berlin", 12, 80));
-
-            while (true)
-            {
-                airport.Tick();
-                Thread.Sleep(1000);
-            }
+            airport.Tick();
+            Thread.Sleep(1000); // пауза 1 сек для наочності
         }
     }
+}
 }
